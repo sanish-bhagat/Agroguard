@@ -1,0 +1,10 @@
+flask
+numpy==1.23.5
+pandas
+flask_cors
+Pillow
+tensorflow==2.10.1
+dotenv
+google-generativeai
+protobuf==3.20.3
+markdown

@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disease Information - AgroGuard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-green: #059669;
+            --light-green: #34d399;
+            --pale-green: #d1fae5;
+            --mint-green: #f0fdf4;
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-600: #4b5563;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --orange-500: #f97316;
+            --red-500: #ef4444;
+            --blue-500: #3b82f6;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--white) 0%, var(--mint-green) 100%);
+            color: var(--gray-800);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            box-shadow: var(--shadow-sm);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-green);
+            text-decoration: none;
+        }
+
+        .logo i {
+            color: var(--light-green);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--primary-green);
+            background: var(--pale-green);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--primary-green);
+            cursor: pointer;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 1rem;
+        }
+
+        .page-subtitle {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Search and Filter */
+        .search-section {
+            background: var(--white);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .search-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--gray-100);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-green);
+        }
+
+        .search-btn {
+            background: var(--primary-green);
+            color: var(--white);
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .search-btn:hover {
+            background: #047857;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            padding: 0.5rem 1rem;
+            background: var(--gray-100);
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-tab.active {
+            background: var(--primary-green);
+            color: var(--white);
+        }
+
+        .filter-tab:hover:not(.active) {
+            background: var(--pale-green);
+        }
+
+        /* Disease Cards Grid */
+        .diseases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .disease-card {
+            background: var(--white);
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .disease-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .disease-header {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--primary-green), var(--light-green));
+            color: var(--white);
+        }
+
+        .disease-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .disease-crop {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .disease-body {
+            padding: 1.5rem;
+        }
+
+        .disease-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .disease-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-label {
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-content {
+            color: var(--gray-600);
+            line-height: 1.6;
+        }
+
+        .severity-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .severity-low {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .severity-medium {
+            background: #fed7aa;
+            color: #9a3412;
+        }
+
+        .severity-high {
+            background: #fecaca;
+            color: #991b1b;
+        }
+
+        .treatment-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .treatment-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--gray-100);
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .treatment-list li:last-child {
+            border-bottom: none;
+        }
+
+        .treatment-list i {
+            color: var(--primary-green);
+            margin-top: 0.125rem;
+        }
+
+        /* Quick Stats */
+        .stats-section {
+            background: var(--white);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .stat-card {
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            background: var(--gray-50);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--pale-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+            color: var(--primary-green);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+
+        /* Tips Section */
+        .tips-section {
+            background: var(--white);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .tip-card {
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid var(--primary-green);
+            background: var(--mint-green);
+        }
+
+        .tip-title {
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .tip-content {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--gray-900);
+            color: var(--white);
+            padding: 3rem 2rem 1rem;
+            margin-top: 4rem;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .footer p {
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--white);
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            opacity: 1;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .diseases-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .page-title {
+                font-size: 2rem;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .container {
+                padding: 2rem 1rem;
+            }
+            
+            .nav-container {
+                padding: 0 1rem;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="nav-container">
+            <a href="home.html" class="logo">
+                <i class="fas fa-leaf"></i>
+                <span>AgroGuard</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="home.html">Home</a></li>
+                    <li><a href="predict.html">Predict Disease</a></li>
+                    <li><a href="info.html" class="active">Disease Info</a></li>
+                </ul>
+            </nav>
+            <button class="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">Plant Disease Information</h1>
+            <p class="page-subtitle">Learn about common plant diseases, their symptoms, causes, and effective treatment strategies to protect your crops.</p>
+        </div>
+
+        <!-- Search and Filter Section -->
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search diseases by name, crop, or symptoms...">
+                <button class="search-btn" onclick="filterDiseases()">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">All Diseases</button>
+                <button class="filter-tab" data-filter="tomato">Tomato</button>
+                <button class="filter-tab" data-filter="potato">Potato</button>
+                <button class="filter-tab" data-filter="apple">Apple</button>
+                <button class="filter-tab" data-filter="corn">Corn</button>
+                <button class="filter-tab" data-filter="peach">Peach</button>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-bug"></i>
+                    </div>
+                    <div class="stat-number">50+</div>
+                    <div class="stat-label">Disease Types Covered</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">Crop Categories</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-pills"></i>
+                    </div>
+                    <div class="stat-number">100+</div>
+                    <div class="stat-label">Treatment Options</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-number">98.7%</div>
+                    <div class="stat-label">Detection Accuracy</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diseases Grid -->
+        <div class="diseases-grid" id="diseasesGrid">
+            <!-- Disease cards will be populated by JavaScript -->
+        </div>
+
+        <!-- Prevention Tips -->
+        <div class="tips-section">
+            <h2 class="section-title">
+                <i class="fas fa-shield-alt"></i>
+                Prevention Tips
+            </h2>
+            <div class="tips-grid">
+                <div class="tip-card">
+                    <h3 class="tip-title">Proper Plant Spacing</h3>
+                    <p class="tip-content">Ensure adequate spacing between plants to improve air circulation and reduce humidity that can promote disease development.</p>
+                </div>
+                <div class="tip-card">
+                    <h3 class="tip-title">Water Management</h3>
+                    <p class="tip-content">Water plants at the base to keep foliage dry. Avoid overhead watering which can splash pathogens onto leaves.</p>
+                </div>
+                <div class="tip-card">
+                    <h3 class="tip-title">Crop Rotation</h3>
+                    <p class="tip-content">Rotate crops annually to break disease cycles and prevent soil-borne pathogens from building up in the soil.</p>
+                </div>
+                <div class="tip-card">
+                    <h3 class="tip-title">Clean Tools</h3>
+                    <p class="tip-content">Sanitize gardening tools between plants and remove infected plant material to prevent disease spread.</p>
+                </div>
+                <div class="tip-card">
+                    <h3 class="tip-title">Regular Monitoring</h3>
+                    <p class="tip-content">Inspect plants weekly for early signs of disease. Early detection allows for more effective treatment.</p>
+                </div>
+                <div class="tip-card">
+                    <h3 class="tip-title">Resistant Varieties</h3>
+                    <p class="tip-content">Choose disease-resistant plant varieties when available to reduce the likelihood of infection.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2024 AgroGuard. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="home.html">Home</a>
+                <a href="predict.html">Predict Disease</a>
+                <a href="info.html">Disease Info</a>
+                <a href="#privacy">Privacy Policy</a>
+                <a href="#terms">Terms of Service</a>
+            </div>
+            <p>Protecting crops with AI technology</p>
+        </div>
+    </footer>
+
+    <script>
+        // Disease data
+        const diseases = [
+            {
+                name: "Early Blight",
+                crop: "tomato",
+                cause: "Fungus (Alternaria solani)",
+                severity: "medium",
+                symptoms: "Dark brown spots with concentric rings on older leaves, yellow halos around spots, stem lesions",
+                treatment: [
+                    "Remove affected leaves immediately",
+                    "Apply fungicide containing chlorothalonil",
+                    "Improve air circulation around plants",
+                    "Avoid overhead watering",
+                    "Rotate crops annually"
+                ]
+            },
+            {
+                name: "Late Blight",
+                crop: "tomato",
+                cause: "Oomycete (Phytophthora infestans)",
+                severity: "high",
+                symptoms: "Water-soaked lesions on leaves, white fuzzy growth on leaf undersides, rapid plant death",
+                treatment: [
+                    "Apply copper-based fungicides immediately",
+                    "Remove and destroy infected plants",
+                    "Avoid working with wet plants",
+                    "Improve drainage in growing area",
+                    "Use resistant varieties"
+                ]
+            },
+            {
+                name: "Bacterial Spot",
+                crop: "tomato",
+                cause: "Bacteria (Xanthomonas spp.)",
+                severity: "medium",
+                symptoms: "Small, dark brown spots on leaves and fruit, yellow halos around spots, defoliation",
+                treatment: [
+                    "Apply copper-based bactericides",
+                    "Remove infected plant debris",
+                    "Avoid overhead irrigation",
+                    "Use pathogen-free seeds",
+                    "Sanitize tools between plants"
+                ]
+            },
+            {
+                name: "Early Blight",
+                crop: "potato",
+                cause: "Fungus (Alternaria solani)",
+                severity: "medium",
+                symptoms: "Dark brown lesions with concentric rings on leaves, tuber infections with dark, sunken spots",
+                treatment: [
+                    "Apply preventive fungicide sprays",
+                    "Remove volunteer potatoes",
+                    "Proper crop rotation",
+                    "Maintain good soil drainage",
+                    "Harvest tubers when mature"
+                ]
+            },
+            {
+                name: "Late Blight",
+                crop: "potato",
+                cause: "Oomycete (Phytophthora infestans)",
+                severity: "high",
+                symptoms: "Water-soaked lesions, white mold growth, rapid foliage collapse, tuber rot",
+                treatment: [
+                    "Apply fungicides preventively",
+                    "Destroy infected plants immediately",
+                    "Hill soil around plants",
+                    "Harvest before infection spreads to tubers",
+                    "Store tubers in cool, dry conditions"
+                ]
+            },
+            {
+                name: "Apple Scab",
+                crop: "apple",
+                cause: "Fungus (Venturia inaequalis)",
+                severity: "medium",
+                symptoms: "Olive-green to black spots on leaves and fruit, premature leaf drop, fruit cracking",
+                treatment: [
+                    "Apply fungicide sprays during spring",
+                    "Remove fallen leaves in autumn",
+                    "Prune for better air circulation",
+                    "Choose resistant apple varieties",
+                    "Apply dormant oil in winter"
+                ]
+            },
+            {
+                name: "Black Rot",
+                crop: "apple",
+                cause: "Fungus (Botryosphaeria obtusa)",
+                severity: "high",
+                symptoms: "Black, circular lesions on fruit, brown spots on leaves, cankers on branches",
+                treatment: [
+                    "Prune out infected branches",
+                    "Remove mummified fruit",
+                    "Apply fungicides during bloom",
+                    "Improve orchard sanitation",
+                    "Avoid tree stress through proper care"
+                ]
+            },
+            {
+                name: "Cedar Apple Rust",
+                crop: "apple",
+                cause: "Fungus (Gymnosporangium juniperi-virginianae)",
+                severity: "low",
+                symptoms: "Yellow-orange spots on leaves, horn-like growths on fruit, premature defoliation",
+                treatment: [
+                    "Remove nearby cedar trees if possible",
+                    "Apply fungicide sprays in spring",
+                    "Choose rust-resistant varieties",
+                    "Rake and destroy fallen leaves",
+                    "Maintain good air circulation"
+                ]
+            },
+            {
+                name: "Common Rust",
+                crop: "corn",
+                cause: "Fungus (Puccinia sorghi)",
+                severity: "low",
+                symptoms: "Small, oval, orange-brown pustules on leaves, yellowing and premature death of leaves",
+                treatment: [
+                    "Plant resistant corn hybrids",
+                    "Apply fungicides if severe",
+                    "Remove crop residue after harvest",
+                    "Rotate with non-host crops",
+                    "Monitor weather conditions"
+                ]
+            },
+            {
+                name: "Gray Leaf Spot",
+                crop: "corn",
+                cause: "Fungus (Cercospora zeae-maydis)",
+                severity: "medium",
+                symptoms: "Rectangular gray to brown lesions on leaves, lesions run parallel to leaf veins",
+                treatment: [
+                    "Use resistant corn varieties",
+                    "Apply fungicides if needed",
+                    "Practice crop rotation",
+                    "Manage crop residue properly",
+                    "Ensure adequate plant spacing"
+                ]
+            },
+            {
+                name: "Bacterial Spot",
+                crop: "peach",
+                cause: "Bacteria (Xanthomonas arboricola)",
+                severity: "medium",
+                symptoms: "Small, dark spots on leaves and fruit, shot-hole appearance on leaves, fruit lesions",
+                treatment: [
+                    "Apply copper sprays during dormant season",
+                    "Prune for better air circulation",
+                    "Remove infected fruit and leaves",
+                    "Avoid overhead irrigation",
+                    "Choose resistant peach varieties"
+                ]
+            },
+            {
+                name: "Brown Rot",
+                crop: "peach",
+                cause: "Fungus (Monilinia fructicola)",
+                severity: "high",
+                symptoms: "Brown, circular spots on fruit, gray-brown spore masses, twig and blossom blight",
+                treatment: [
+                    "Remove mummified fruit",
+                    "Apply fungicides before bloom",
+                    "Thin fruit to improve air circulation",
+                    "Prune out infected twigs",
+                    "Harvest fruit at proper maturity"
+                ]
+            }
+        ];
+
+        // DOM elements
+        const diseasesGrid = document.getElementById('diseasesGrid');
+        const searchInput = document.getElementById('searchInput');
+        const filterTabs = document.querySelectorAll('.filter-tab');
+
+        // Current filter state
+        let currentFilter = 'all';
+        let currentSearch = '';
+
+        // Initialize page
+        function initializePage() {
+            renderDiseases();
+            setupEventListeners();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Search input
+            searchInput.addEventListener('input', (e) => {
+                currentSearch = e.target.value.toLowerCase();
+                renderDiseases();
+            });
+
+            // Filter tabs
+            filterTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Update active tab
+                    filterTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    currentFilter = tab.dataset.filter;
+                    renderDiseases();
+                });
+            });
+        }
+
+        // Filter diseases based on current filters
+        function getFilteredDiseases() {
+            return diseases.filter(disease => {
+                // Filter by crop
+                const cropMatch = currentFilter === 'all' || disease.crop === currentFilter;
+                
+                // Filter by search term
+                const searchMatch = currentSearch === '' || 
+                    disease.name.toLowerCase().includes(currentSearch) ||
+                    disease.crop.toLowerCase().includes(currentSearch) ||
+                    disease.symptoms.toLowerCase().includes(currentSearch) ||
+                    disease.cause.toLowerCase().includes(currentSearch);
+                
+                return cropMatch && searchMatch;
+            });
+        }
+
+        // Render diseases
+        function renderDiseases() {
+            const filteredDiseases = getFilteredDiseases();
+            
+            if (filteredDiseases.length === 0) {
+                diseasesGrid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--gray-600);">
+                        <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                        <h3>No diseases found</h3>
+                        <p>Try adjusting your search terms or filters.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            diseasesGrid.innerHTML = filteredDiseases.map(disease => `
+                <div class="disease-card">
+                    <div class="disease-header">
+                        <h3 class="disease-name">${disease.name}</h3>
+                        <div class="disease-crop">
+                            <i class="fas fa-seedling"></i>
+                            <span>${disease.crop.charAt(0).toUpperCase() + disease.crop.slice(1)}</span>
+                            <span class="severity-badge severity-${disease.severity}">
+                                ${disease.severity.charAt(0).toUpperCase() + disease.severity.slice(1)} Risk
+                            </span>
+                        </div>
+                    </div>
+                    <div class="disease-body">
+                        <div class="disease-section">
+                            <div class="section-label">
+                                <i class="fas fa-microscope"></i>
+                                Cause
+                            </div>
+                            <div class="section-content">${disease.cause}</div>
+                        </div>
+                        
+                        <div class="disease-section">
+                            <div class="section-label">
+                                <i class="fas fa-eye"></i>
+                                Symptoms
+                            </div>
+                            <div class="section-content">${disease.symptoms}</div>
+                        </div>
+                        
+                        <div class="disease-section">
+                            <div class="section-label">
+                                <i class="fas fa-pills"></i>
+                                Treatment
+                            </div>
+                            <ul class="treatment-list">
+                                ${disease.treatment.map(treatment => `
+                                    <li>
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>${treatment}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Filter function for search button
+        function filterDiseases() {
+            currentSearch = searchInput.value.toLowerCase();
+            renderDiseases();
+        }
+
+        // Initialize the page
+        initializePage();
+    </script>
+</body>
+</html> 

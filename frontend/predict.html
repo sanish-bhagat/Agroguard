@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict Disease - AgroGuard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-green: #059669;
+            --light-green: #34d399;
+            --pale-green: #d1fae5;
+            --mint-green: #f0fdf4;
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-600: #4b5563;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --red-500: #ef4444;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--white) 0%, var(--mint-green) 100%);
+            color: var(--gray-800);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            box-shadow: var(--shadow-sm);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-green);
+            text-decoration: none;
+        }
+
+        .logo i {
+            color: var(--light-green);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--primary-green);
+            background: var(--pale-green);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--primary-green);
+            cursor: pointer;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 1rem;
+        }
+
+        .page-subtitle {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 3rem;
+        }
+
+        /* Crop Selection */
+        .crop-section {
+            background: var(--white);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            height: fit-content;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .crops-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .crop-card {
+            background: var(--gray-50);
+            border: 2px solid var(--gray-100);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .crop-card:hover {
+            border-color: var(--light-green);
+            background: var(--mint-green);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .crop-card.active {
+            border-color: var(--primary-green);
+            background: var(--pale-green);
+            box-shadow: var(--shadow-md);
+        }
+
+        .crop-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .crop-name {
+            font-weight: 500;
+            color: var(--gray-800);
+        }
+
+        /* Upload Section */
+        .upload-section {
+            background: var(--white);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--gray-100);
+            border-radius: 0.75rem;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--gray-50);
+        }
+
+        .upload-area:hover {
+            border-color: var(--light-green);
+            background: var(--mint-green);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--primary-green);
+            background: var(--pale-green);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            color: var(--gray-600);
+            margin-bottom: 1rem;
+        }
+
+        .upload-btn {
+            background: var(--primary-green);
+            color: var(--white);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .upload-btn:hover {
+            background: #047857;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 0.75rem;
+            margin: 1rem 0;
+            box-shadow: var(--shadow-md);
+        }
+
+        .predict-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-green), var(--light-green));
+            color: var(--white);
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .predict-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .predict-btn:disabled {
+            background: var(--gray-100);
+            color: var(--gray-600);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            padding: 2rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--gray-100);
+            border-top: 3px solid var(--primary-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Results */
+        .result-card {
+            background: var(--white);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: var(--shadow-lg);
+            border-left: 4px solid var(--primary-green);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .confidence-badge {
+            background: var(--pale-green);
+            color: var(--primary-green);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .disease-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--red-500);
+            margin-bottom: 1rem;
+            padding: 0.75rem 1rem;
+            background: #fef2f2;
+            border-radius: 0.5rem;
+            border-left: 4px solid var(--red-500);
+        }
+
+        .treatment-section {
+            margin-top: 1.5rem;
+        }
+
+        .treatment-title {
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .treatment-text {
+            color: var(--gray-600);
+            line-height: 1.6;
+            background: var(--gray-50);
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .error-card {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            color: #991b1b;
+        }
+
+        .crop-required-message {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--gray-600);
+        }
+
+        .crop-required-message i {
+            font-size: 3rem;
+            color: var(--gray-100);
+            margin-bottom: 1rem;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--gray-900);
+            color: var(--white);
+            padding: 3rem 2rem 1rem;
+            margin-top: 4rem;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .footer p {
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--white);
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            opacity: 1;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .page-title {
+                font-size: 2rem;
+            }
+            
+            .crops-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 2rem 1rem;
+            }
+            
+            .nav-container {
+                padding: 0 1rem;
+            }
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="nav-container">
+            <a href="home.html" class="logo">
+                <i class="fas fa-leaf"></i>
+                <span>AgroGuard</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="home.html">Home</a></li>
+                    <li><a href="predict.html" class="active">Predict Disease</a></li>
+                    <li><a href="info.html">Disease Info</a></li>
+                </ul>
+            </nav>
+            <button class="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">Plant Disease Diagnosis</h1>
+            <p class="page-subtitle">Upload a photo of your plant leaf and get instant AI-powered disease identification with treatment recommendations.</p>
+        </div>
+
+        <div class="main-content">
+            <div class="crop-section">
+                <h2 class="section-title">
+                    <i class="fas fa-seedling"></i>
+                    Select Crop Type
+                </h2>
+                <div class="crops-grid">
+                    <div class="crop-card" data-crop="tomatoes">
+                        <span class="crop-icon">🍅</span>
+                        <div class="crop-name">Tomato</div>
+                    </div>
+                    <div class="crop-card" data-crop="potatoes">
+                        <span class="crop-icon">🥔</span>
+                        <div class="crop-name">Potato</div>
+                    </div>
+                    <div class="crop-card" data-crop="apple">
+                        <span class="crop-icon">🍎</span>
+                        <div class="crop-name">Apple</div>
+                    </div>
+                    <div class="crop-card" data-crop="corn">
+                        <span class="crop-icon">🌽</span>
+                        <div class="crop-name">Corn</div>
+                    </div>
+                    <div class="crop-card" data-crop="peach">
+                        <span class="crop-icon">🍑</span>
+                        <div class="crop-name">Peach</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="upload-section">
+                <h2 class="section-title">
+                    <i class="fas fa-camera"></i>
+                    Upload Plant Image
+                </h2>
+                
+                <div id="uploadContent">
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="imageInput" accept="image/*">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <div class="upload-text">
+                            <p><strong>Click to upload</strong> or drag and drop</p>
+                            <p>PNG, JPG, JPEG up to 10MB</p>
+                        </div>
+                        <button type="button" class="upload-btn" onclick="document.getElementById('imageInput').click()">
+                            Choose File
+                        </button>
+                    </div>
+
+                    <div id="imagePreviewContainer" class="hidden">
+                        <img id="imagePreview" class="image-preview" alt="Preview">
+                    </div>
+
+                    <button id="predictBtn" class="predict-btn" disabled>
+                        <i class="fas fa-microscope"></i>
+                        Analyze Plant Disease
+                    </button>
+
+                    <div id="loadingContainer" class="loading hidden">
+                        <div class="spinner"></div>
+                        <p>Analyzing your plant image...</p>
+                    </div>
+
+                    <div id="resultContainer"></div>
+                </div>
+
+                <div id="cropRequiredMessage" class="crop-required-message">
+                    <i class="fas fa-seedling"></i>
+                    <h3>Please select a crop to begin diagnosis</h3>
+                    <p>Choose your crop type from the selection panel to enable image upload.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2024 AgroGuard. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="home.html">Home</a>
+                <a href="predict.html">Predict Disease</a>
+                <a href="info.html">Disease Info</a>
+                <a href="#privacy">Privacy Policy</a>
+                <a href="#terms">Terms of Service</a>
+            </div>
+            <p>Protecting crops with AI technology</p>
+        </div>
+    </footer>
+
+    <script>
+        // Application state
+        let selectedCrop = null;
+        let selectedImage = null;
+
+        // DOM elements
+        const cropCards = document.querySelectorAll('.crop-card');
+        const imageInput = document.getElementById('imageInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const uploadContent = document.getElementById('uploadContent');
+        const cropRequiredMessage = document.getElementById('cropRequiredMessage');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const imagePreview = document.getElementById('imagePreview');
+        const predictBtn = document.getElementById('predictBtn');
+        const loadingContainer = document.getElementById('loadingContainer');
+        const resultContainer = document.getElementById('resultContainer');
+
+        // Initialize page
+        function initializePage() {
+            updateUI();
+        }
+
+        // Update UI based on selected crop
+        function updateUI() {
+            if (selectedCrop) {
+                uploadContent.classList.remove('hidden');
+                cropRequiredMessage.classList.add('hidden');
+            } else {
+                uploadContent.classList.add('hidden');
+                cropRequiredMessage.classList.remove('hidden');
+            }
+            updatePredictButton();
+        }
+
+        // Crop selection
+        cropCards.forEach(card => {
+            card.addEventListener('click', () => {
+                // Remove active class from all cards
+                cropCards.forEach(c => c.classList.remove('active'));
+                // Add active class to clicked card
+                card.classList.add('active');
+                selectedCrop = card.dataset.crop;
+                
+                // Reset image and results when changing crop
+                selectedImage = null;
+                imagePreviewContainer.classList.add('hidden');
+                resultContainer.innerHTML = '';
+                imageInput.value = '';
+                
+                updateUI();
+            });
+        });
+
+        // File upload handling
+        imageInput.addEventListener('change', handleImageUpload);
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        // Click to upload
+        uploadArea.addEventListener('click', () => {
+            if (selectedCrop) {
+                imageInput.click();
+            }
+        });
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showError('Please select a valid image file.');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                showError('File size must be less than 10MB.');
+                return;
+            }
+
+            selectedImage = file;
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview.src = e.target.result;
+                imagePreviewContainer.classList.remove('hidden');
+                updatePredictButton();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updatePredictButton() {
+            if (selectedCrop && selectedImage) {
+                predictBtn.disabled = false;
+            } else {
+                predictBtn.disabled = true;
+            }
+        }
+
+        // Prediction
+        predictBtn.addEventListener('click', async () => {
+            if (!selectedCrop || !selectedImage) return;
+
+            // Show loading
+            loadingContainer.classList.remove('hidden');
+            resultContainer.innerHTML = '';
+            predictBtn.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('file', selectedImage);
+                formData.append('crop', selectedCrop);
+
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Prediction failed');
+                }
+
+                showResult(data);
+
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                loadingContainer.classList.add('hidden');
+                updatePredictButton();
+            }
+        });
+
+        function showResult(data) {
+            const resultHTML = `
+                <div class="result-card">
+                    <div class="result-header">
+                        <h3 class="result-title">Disease Analysis Complete</h3>
+                        <span class="confidence-badge">Confidence: ${data.confidence}</span>
+                    </div>
+                    <div class="disease-name">${data.disease}</div>
+                    <div class="treatment-section">
+                        <h4 class="treatment-title">Recommended Treatment:</h4>
+                        <p class="treatment-text">${data.treatment}</p>
+                    </div>
+                </div>
+            `;
+            resultContainer.innerHTML = resultHTML;
+        }
+
+        function showError(message) {
+            const errorHTML = `
+                <div class="error-card">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Error:</strong> ${message}
+                </div>
+            `;
+            resultContainer.innerHTML = errorHTML;
+        }
+
+        // Initialize the page
+        initializePage();
+    </script>
+</body>
+</html> 
