@@ -31,6 +31,7 @@ CLASS_NAMES = {
     "peach": ["Peach___Bacterial_spot", "Peach___healthy", "..."]
 }
 
+# loading the model
 MODELS = {}
 for crop_name in CLASS_NAMES.keys():
     model_path = os.path.join('models', f'{crop_name}.h5')
@@ -43,7 +44,7 @@ for crop_name in CLASS_NAMES.keys():
 
 print("All models loaded successfully!")
 
-
+# image preprocessing
 def preprocess_image(image_file):
     img = Image.open(image_file.stream).convert('RGB')
     img = img.resize(IMAGE_SIZE)
