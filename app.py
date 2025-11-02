@@ -19,9 +19,14 @@ load_dotenv()
 
 # Configure Gemini API
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-if not GEMINI_API_KEY:
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+# if not GEMINI_API_KEY:
+#     raise RuntimeError("❌ Gemini API key not found in .env file")
+# genai.configure(api_key=GEMINI_API_KEY)
+
+if not GOOGLE_API_KEY:
     raise RuntimeError("❌ Gemini API key not found in .env file")
-genai.configure(api_key=GEMINI_API_KEY)
+genai.configure(api_key=GOOGLE_API_KEY)
 
 CLASS_NAMES = {
     "tomatoes": ["Tomato_Bacterial_spot", "Tomato_Early_blight", "Tomato_healthy", "..."],
@@ -81,38 +86,28 @@ def predict():
         confidence = float(np.max(prediction[0])) * 100
         predicted_class_name = CLASS_NAMES[crop][predicted_class_index]
 
-        # --- LLM: Get treatment info from Gemini ---
-        prompt = f"""
-        You are an agricultural expert. Write a farmer-friendly plant disease guide in this exact Markdown + emoji style:
-
+        # --- Mock treatment info (API key invalid, using static response) ---
+        treatment_info = f"""
         # {predicted_class_name.replace('_', ' ')} in {crop} 🍎
 
         ## Symptoms 🔎
-        * Use short bullet points
-        * Keep language simple
+        * Yellowing leaves
+        * Spots on fruits
 
         ## Causes 🦠
-        * Explain clearly
-        * Avoid technical jargon
+        * Fungal infection
 
         ## Organic Treatment 🌿
-        * Use bold for product names
-        * Short, actionable steps
+        * Use **neem oil**
 
         ## Chemical Treatment 🧪
-        * Include timing
-        * Mention safety precautions
+        * Apply fungicide as per instructions
 
         ## Prevention Tips 🍎
-        * Actionable and clear
+        * Proper watering
 
-        **Disclaimer:** Always follow label instructions...
+        **Disclaimer:** Consult a professional.
         """
-
-        gemini_model = genai.GenerativeModel("models/gemini-1.5-flash")
-        llm_response = gemini_model.generate_content(prompt)
-
-        treatment_info = llm_response.text
         html_treatment = md.markdown(treatment_info)
 
         return jsonify({
