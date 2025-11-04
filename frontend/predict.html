@@ -36,7 +36,8 @@
             background: linear-gradient(135deg, var(--white) 0%, var(--mint-green) 100%);
             color: var(--gray-800);
             line-height: 1.6;
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
         }
 
         /* Header */
@@ -106,7 +107,9 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 3rem 2rem;
+            padding: 1rem 2rem;
+            height: calc(100vh - 80px);
+            overflow-y: auto;
         }
 
         .page-header {
@@ -133,6 +136,64 @@
             display: grid;
             grid-template-columns: 1fr 2fr;
             gap: 3rem;
+        }
+
+        /* Progress Steps */
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gray-100);
+            z-index: 1;
+        }
+
+        .progress-step {
+            background: var(--white);
+            border: 2px solid var(--gray-100);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .progress-step.active {
+            background: var(--primary-green);
+            border-color: var(--primary-green);
+            color: var(--white);
+        }
+
+        .progress-step.completed {
+            background: var(--light-green);
+            border-color: var(--light-green);
+            color: var(--white);
+        }
+
+        .step-label {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            color: var(--gray-600);
+            white-space: nowrap;
         }
 
         /* Crop Selection */
@@ -257,6 +318,76 @@
             border-radius: 0.75rem;
             margin: 1rem 0;
             box-shadow: var(--shadow-md);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .image-preview:hover {
+            transform: scale(1.02);
+        }
+
+        .zoom-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--white);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1.1rem;
+        }
+
+        .zoom-btn:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: scale(1.1);
+        }
+
+        .preview-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* Modal for zoomed image */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 0.5rem;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: var(--white);
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .close-modal:hover {
+            color: var(--gray-100);
         }
 
         .predict-btn {
@@ -477,17 +608,10 @@
 <body>
     <header class="header">
         <div class="nav-container">
-            <a href="home.html" class="logo">
+            <a href="/" class="logo">
                 <i class="fas fa-leaf"></i>
                 <span>AgroGuard</span>
             </a>
-            <nav>
-                <ul class="nav-links">
-                    <li><a href="home.html">Home</a></li>
-                    <li><a href="predict.html" class="active">Predict Disease</a></li>
-                    <li><a href="info.html">Disease Info</a></li>
-                </ul>
-            </nav>
             <button class="mobile-menu-btn">
                 <i class="fas fa-bars"></i>
             </button>
@@ -535,34 +659,94 @@
                     <i class="fas fa-camera"></i>
                     Upload Plant Image
                 </h2>
-                
+
+                <!-- Progress Steps -->
+                <div class="progress-steps" id="progressSteps">
+                    <div class="progress-step active" data-step="1">
+                        1
+                        <div class="step-label">Select Crop</div>
+                    </div>
+                    <div class="progress-step" data-step="2">
+                        2
+                        <div class="step-label">Upload Image</div>
+                    </div>
+                    <div class="progress-step" data-step="3">
+                        3
+                        <div class="step-label">Analyze</div>
+                    </div>
+                    <div class="progress-step" data-step="4">
+                        4
+                        <div class="step-label">Results</div>
+                    </div>
+                </div>
+
                 <div id="uploadContent">
-                    <div class="upload-area" id="uploadArea">
-                        <input type="file" id="imageInput" accept="image/*">
-                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                        <div class="upload-text">
-                            <p><strong>Click to upload</strong> or drag and drop</p>
-                            <p>PNG, JPG, JPEG up to 10MB</p>
+                    <!-- Upload Area Section -->
+                    <div class="subsection upload-subsection">
+                        <h3 class="subsection-title">
+                            <i class="fas fa-upload"></i>
+                            Step 1: Upload Image
+                        </h3>
+                        <div class="upload-area" id="uploadArea">
+                            <input type="file" id="imageInput" accept="image/*">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <div class="upload-text">
+                                <p><strong>Click to upload</strong> or drag and drop</p>
+                                <p>PNG, JPG, JPEG up to 10MB</p>
+                            </div>
+                            <button type="button" class="upload-btn" onclick="document.getElementById('imageInput').click()">
+                                Choose File
+                            </button>
                         </div>
-                        <button type="button" class="upload-btn" onclick="document.getElementById('imageInput').click()">
-                            Choose File
-                        </button>
                     </div>
 
-                    <div id="imagePreviewContainer" class="hidden">
-                        <img id="imagePreview" class="image-preview" alt="Preview">
+                    <!-- Image Preview Section -->
+                    <div class="subsection preview-subsection" id="imagePreviewContainer" style="display: none;">
+                        <h3 class="subsection-title">
+                            <i class="fas fa-eye"></i>
+                            Step 2: Image Preview
+                        </h3>
+                        <div class="preview-container">
+                            <img id="imagePreview" class="image-preview" alt="Preview">
+                            <button class="zoom-btn" id="zoomBtn" title="Zoom Image">
+                                <i class="fas fa-search-plus"></i>
+                            </button>
+                        </div>
                     </div>
 
-                    <button id="predictBtn" class="predict-btn" disabled>
-                        <i class="fas fa-microscope"></i>
-                        Analyze Plant Disease
-                    </button>
+                    <!-- Analyze Section -->
+                    <div class="subsection analyze-subsection" id="analyzeSection" style="display: none;">
+                        <h3 class="subsection-title">
+                            <i class="fas fa-microscope"></i>
+                            Step 3: Analyze Disease
+                        </h3>
+                        <div class="analyze-container">
+                            <div class="analyze-info">
+                                <p><strong>Crop:</strong> <span id="selectedCropDisplay"></span></p>
+                                <p><strong>Ready for analysis</strong></p>
+                            </div>
+                            <button id="predictBtn" class="predict-btn" disabled>
+                                <i class="fas fa-microscope"></i>
+                                Analyze Plant Disease
+                            </button>
+                        </div>
+                    </div>
 
+                    <!-- Loading Section -->
                     <div id="loadingContainer" class="loading hidden">
-                        <div class="spinner"></div>
-                        <p>Analyzing your plant image...</p>
+                        <div class="loading-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                            <div class="loading-steps">
+                                <div class="loading-step active" data-loading-step="1">Preprocessing image...</div>
+                                <div class="loading-step" data-loading-step="2">Analyzing with AI model...</div>
+                                <div class="loading-step" data-loading-step="3">Generating results...</div>
+                            </div>
+                        </div>
                     </div>
 
+                    <!-- Results Section -->
                     <div id="resultContainer"></div>
                 </div>
 
@@ -575,19 +759,13 @@
         </div>
     </div>
 
-    <footer class="footer">
-        <div class="footer-container">
-            <p>&copy; 2024 AgroGuard. All rights reserved.</p>
-            <div class="footer-links">
-                <a href="home.html">Home</a>
-                <a href="predict.html">Predict Disease</a>
-                <a href="info.html">Disease Info</a>
-                <a href="#privacy">Privacy Policy</a>
-                <a href="#terms">Terms of Service</a>
-            </div>
-            <p>Protecting crops with AI technology</p>
-        </div>
-    </footer>
+
+
+    <!-- Modal for zoomed image -->
+    <div id="imageModal" class="modal">
+        <span class="close-modal">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
 
     <script>
         // Application state
@@ -771,8 +949,37 @@
             resultContainer.innerHTML = errorHTML;
         }
 
-        // Initialize the page
-        initializePage();
+        // Modal functionality
+        const modal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        const zoomBtn = document.getElementById('zoomBtn');
+        const closeModal = document.querySelector('.close-modal');
+
+        // Open modal when zoom button is clicked
+        zoomBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent triggering image click
+            modal.style.display = 'flex';
+            modalImage.src = imagePreview.src;
+        });
+
+        // Close modal when close button is clicked
+        closeModal.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        // Close modal when clicking outside the image
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // Also allow clicking on the image preview to open modal
+        imagePreview.addEventListener('click', () => {
+            modal.style.display = 'flex';
+            modalImage.src = imagePreview.src;
+        });
+
     </script>
 </body>
-</html> 
+</html>

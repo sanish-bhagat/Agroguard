@@ -60,8 +60,8 @@ def preprocess_image(image_file):
 
 @app.route("/")
 def serve_index():
-    """Serve the frontend index.html"""
-    return send_from_directory(app.static_folder, "index.html")
+    """Serve the frontend predict.html"""
+    return send_from_directory(app.static_folder, "predict.html")
 
 
 @app.route('/predict', methods=['POST'])
