@@ -119,5 +119,42 @@ def predict():
         return jsonify({'error': f'Error during prediction: {str(e)}'}), 500
 
 
+@app.route('/chat', methods=['POST'])
+def chat():
+    try:
+        data = request.get_json()
+        user_message = data.get('message', '')
+        context = data.get('context', '')
+
+        if not user_message:
+            return jsonify({'error': 'No message provided'}), 400
+
+        # Create a conversational AI model using Gemini
+        model = genai.GenerativeModel('gemini-1.5-flash')
+
+        # Create a context-aware prompt
+        prompt = f"""
+        You are an agricultural expert chatbot helping farmers with plant disease diagnosis and treatment.
+        The user has uploaded an image for disease analysis and is asking follow-up questions.
+
+        Context: {context}
+        User question: {user_message}
+
+        Please provide helpful, accurate information about plant diseases, treatments, and agricultural practices.
+        Keep your response concise but informative. Use simple language that farmers can understand.
+        If the question is about treatment, emphasize both organic and chemical options when appropriate.
+        Always remind users to consult professionals for severe cases.
+        """
+
+        response = model.generate_content(prompt)
+        ai_response = response.text.strip()
+
+        return jsonify({'response': ai_response})
+
+    except Exception as e:
+        print(f"Chat error: {str(e)}")
+        return jsonify({'error': 'Failed to process chat message'}), 500
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
