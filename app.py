@@ -7,6 +7,7 @@ import tensorflow as tf
 from dotenv import load_dotenv
 import google.generativeai as genai  # ✅ Gemini API
 import markdown as md
+import ollama
 
 # --- Configuration & Model Loading ---
 app = Flask(__name__, static_folder="frontend", static_url_path="")
@@ -82,41 +83,36 @@ def predict():
         processed_image = preprocess_image(file)
         model = MODELS[crop]
         prediction = model.predict(processed_image)
+
         predicted_class_index = np.argmax(prediction[0])
         confidence = float(np.max(prediction[0])) * 100
         predicted_class_name = CLASS_NAMES[crop][predicted_class_index]
 
-        # --- Mock treatment info (API key invalid, using static response) ---
-        treatment_info = f"""
-        # {predicted_class_name.replace('_', ' ')} in {crop} 🍎
+        # --- Ollama LLM prompt for a brief summary ---
+        prompt = f"""
+        Write a very short and clear 2–3 sentence summary about this crop disease.
+        Mention what it affects and its general impact on the plant.
 
-        ## Symptoms 🔎
-        * Yellowing leaves
-        * Spots on fruits
-
-        ## Causes 🦠
-        * Fungal infection
-
-        ## Organic Treatment 🌿
-        * Use **neem oil**
-
-        ## Chemical Treatment 🧪
-        * Apply fungicide as per instructions
-
-        ## Prevention Tips 🍎
-        * Proper watering
-
-        **Disclaimer:** Consult a professional.
+        Crop: {crop}
+        Disease: {predicted_class_name.replace('_', ' ')}
         """
-        html_treatment = md.markdown(treatment_info)
+
+        # Call Ollama (you can use any model like llama3, mistral, or phi3)
+        response = ollama.chat(
+            model="llama3:8b",
+            messages=[{"role": "user", "content": prompt}]
+        )
+
+        summary = response['message']['content'].strip()
 
         return jsonify({
             'disease': predicted_class_name.replace('_', ' '),
             'confidence': f"{confidence:.2f}%",
-            'treatment': html_treatment
+            'summary': summary
         })
     except Exception as e:
         return jsonify({'error': f'Error during prediction: {str(e)}'}), 500
+
 
 
 @app.route('/chat', methods=['POST'])
