@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, render_template
 import os
 import numpy as np
 from flask_cors import CORS
@@ -8,6 +8,18 @@ from dotenv import load_dotenv
 import google.generativeai as genai  # ✅ Gemini API
 import markdown as md
 import ollama
+from src.helper import download_hugging_face_embeddings
+from langchain_pinecone import PineconeVectorStore
+from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
+from langchain.chains import create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_core.prompts import ChatPromptTemplate
+from src.prompt import *
+from langchain.memory import ConversationBufferMemory
+# from groq import Groq
+from langchain_groq import ChatGroq
+
 
 # --- Configuration & Model Loading ---
 app = Flask(__name__, static_folder="frontend", static_url_path="")
@@ -115,8 +127,8 @@ def predict():
 
 
 
-@app.route('/chat', methods=['POST'])
-def chat():
+@app.route('/gemini_chat', methods=['POST'])
+def gemini_chat():
     try:
         data = request.get_json()
         user_message = data.get('message', '')
@@ -152,5 +164,62 @@ def chat():
         return jsonify({'error': 'Failed to process chat message'}), 500
 
 
+
+PINECONE_API_KEY=os.environ.get('PINECONE_API_KEY')
+os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
+
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+embeddings = download_hugging_face_embeddings()
+
+index_name = "agroguard" 
+# Embed each chunk and upsert the embeddings into your Pinecone index.
+docsearch = PineconeVectorStore.from_existing_index(
+    index_name=index_name,
+    embedding=embeddings
+)
+
+
+retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k":3})
+
+llm = ChatGroq(
+    model="llama-3.3-70b-versatile",
+    api_key=os.getenv("GROQ_API_KEY")
+)
+
+
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", system_prompt),
+        ("human", "{input}"),
+    ]
+)
+
+question_answer_chain = create_stuff_documents_chain(llm, prompt)
+rag_chain = create_retrieval_chain(retriever, question_answer_chain)
+
+memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+
+@app.route("/rag_chat_memory", methods=["POST"])
+def rag_chat_memory():
+    data = request.get_json()
+    user_input = data.get("message", "")
+
+    context = memory.load_memory_variables({})
+    chat_history = context.get("chat_history", "")
+
+    final_input = f"""
+    Previous conversation:
+    {chat_history}
+
+    User question: {user_input}
+    """
+
+    response = rag_chain.invoke({"input": final_input})
+    memory.save_context({"input": user_input}, {"output": response["answer"]})
+
+    return jsonify({"response": response["answer"]})
+
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host="0.0.0.0", port= 8080, debug= True)

@@ -933,14 +933,13 @@
 
             // Send to backend (you'll need to implement this endpoint)
             try {
-                const response = await fetch('/chat', {
+                const response = await fetch('/rag_chat_memory', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        message: message,
-                        context: 'disease_analysis' // Add context about current analysis
+                        message: message
                     })
                 });
 
