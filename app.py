@@ -164,6 +164,7 @@ def gemini_chat():
         return jsonify({'error': 'Failed to process chat message'}), 500
 
 
+
 PINECONE_API_KEY=os.environ.get('PINECONE_API_KEY')
 os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
 
