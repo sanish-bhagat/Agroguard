@@ -6,18 +6,13 @@ from PIL import Image
 import tensorflow as tf
 from dotenv import load_dotenv
 import google.generativeai as genai  # ✅ Gemini API
-import markdown as md
-import ollama
 from src.helper import download_hugging_face_embeddings
 from langchain_pinecone import PineconeVectorStore
-from langchain_openai import ChatOpenAI
-from langchain_ollama import ChatOllama
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
 from src.prompt import *
 from langchain.memory import ConversationBufferMemory
-# from groq import Groq
 from langchain_groq import ChatGroq
 
 
@@ -62,6 +57,41 @@ for crop_name in CLASS_NAMES.keys():
 
 print("All models loaded successfully!")
 
+
+PINECONE_API_KEY=os.environ.get('PINECONE_API_KEY')
+os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
+
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+embeddings = download_hugging_face_embeddings()
+
+index_name = "agroguard" 
+# Embed each chunk and upsert the embeddings into your Pinecone index.
+docsearch = PineconeVectorStore.from_existing_index(
+    index_name=index_name,
+    embedding=embeddings
+)
+
+retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k":3})
+
+llm = ChatGroq(
+    model="llama-3.3-70b-versatile",
+    api_key=os.getenv("GROQ_API_KEY")
+)
+
+
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", system_prompt),
+        ("human", "{input}"),
+    ]
+)
+
+question_answer_chain = create_stuff_documents_chain(llm, prompt)
+rag_chain = create_retrieval_chain(retriever, question_answer_chain)
+
+memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+
 # image preprocessing
 def preprocess_image(image_file):
     img = Image.open(image_file.stream).convert('RGB')
@@ -100,66 +130,22 @@ def predict():
         confidence = float(np.max(prediction[0])) * 100
         predicted_class_name = CLASS_NAMES[crop][predicted_class_index]
 
-        # --- Ollama LLM prompt for a brief summary ---
-        prompt = f"""
-        Write a very short and clear 2–3 sentence summary about this crop disease.
-        Mention what it affects and its general impact on the plant.
+        # --- Query RAG for treatment recommendations ---
+        treatment_query = f"What are the treatment recommendations for {predicted_class_name.replace('_', ' ')} in {crop}?"
 
-        Crop: {crop}
-        Disease: {predicted_class_name.replace('_', ' ')}
-        """
+        treatment_response = rag_chain.invoke({"input": treatment_query})
+        memory.save_context({"input": treatment_query}, {"output": treatment_response["answer"]})
 
-        # Call Ollama (you can use any model like llama3, mistral, or phi3)
-        response = ollama.chat(
-            model="llama3:8b",
-            messages=[{"role": "user", "content": prompt}]
-        )
-
-        summary = response['message']['content'].strip()
+        treatment = treatment_response["answer"].strip()
 
         return jsonify({
             'disease': predicted_class_name.replace('_', ' '),
             'confidence': f"{confidence:.2f}%",
-            'summary': summary
+            'treatment': treatment
         })
     except Exception as e:
         return jsonify({'error': f'Error during prediction: {str(e)}'}), 500
-
-
-PINECONE_API_KEY=os.environ.get('PINECONE_API_KEY')
-os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
-
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-
-embeddings = download_hugging_face_embeddings()
-
-index_name = "agroguard" 
-# Embed each chunk and upsert the embeddings into your Pinecone index.
-docsearch = PineconeVectorStore.from_existing_index(
-    index_name=index_name,
-    embedding=embeddings
-)
-
-
-retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k":3})
-
-llm = ChatGroq(
-    model="llama-3.3-70b-versatile",
-    api_key=os.getenv("GROQ_API_KEY")
-)
-
-
-prompt = ChatPromptTemplate.from_messages(
-    [
-        ("system", system_prompt),
-        ("human", "{input}"),
-    ]
-)
-
-question_answer_chain = create_stuff_documents_chain(llm, prompt)
-rag_chain = create_retrieval_chain(retriever, question_answer_chain)
-
-memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+    
 
 @app.route("/rag_chat_memory", methods=["POST"])
 def rag_chat_memory():
