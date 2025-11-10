@@ -100,69 +100,12 @@ def predict():
         confidence = float(np.max(prediction[0])) * 100
         predicted_class_name = CLASS_NAMES[crop][predicted_class_index]
 
-        # --- Ollama LLM prompt for a brief summary ---
-        prompt = f"""
-        Write a very short and clear 2–3 sentence summary about this crop disease.
-        Mention what it affects and its general impact on the plant.
-
-        Crop: {crop}
-        Disease: {predicted_class_name.replace('_', ' ')}
-        """
-
-        # Call Ollama (you can use any model like llama3, mistral, or phi3)
-        response = ollama.chat(
-            model="llama3:8b",
-            messages=[{"role": "user", "content": prompt}]
-        )
-
-        summary = response['message']['content'].strip()
-
         return jsonify({
             'disease': predicted_class_name.replace('_', ' '),
-            'confidence': f"{confidence:.2f}%",
-            'summary': summary
+            'confidence': f"{confidence:.2f}%"
         })
     except Exception as e:
         return jsonify({'error': f'Error during prediction: {str(e)}'}), 500
-
-
-
-@app.route('/gemini_chat', methods=['POST'])
-def gemini_chat():
-    try:
-        data = request.get_json()
-        user_message = data.get('message', '')
-        context = data.get('context', '')
-
-        if not user_message:
-            return jsonify({'error': 'No message provided'}), 400
-
-        # Create a conversational AI model using Gemini
-        model = genai.GenerativeModel('gemini-1.5-flash')
-
-        # Create a context-aware prompt
-        prompt = f"""
-        You are an agricultural expert chatbot helping farmers with plant disease diagnosis and treatment.
-        The user has uploaded an image for disease analysis and is asking follow-up questions.
-
-        Context: {context}
-        User question: {user_message}
-
-        Please provide helpful, accurate information about plant diseases, treatments, and agricultural practices.
-        Keep your response concise but informative. Use simple language that farmers can understand.
-        If the question is about treatment, emphasize both organic and chemical options when appropriate.
-        Always remind users to consult professionals for severe cases.
-        """
-
-        response = model.generate_content(prompt)
-        ai_response = response.text.strip()
-
-        return jsonify({'response': ai_response})
-
-    except Exception as e:
-        print(f"Chat error: {str(e)}")
-        return jsonify({'error': 'Failed to process chat message'}), 500
-
 
 
 PINECONE_API_KEY=os.environ.get('PINECONE_API_KEY')
