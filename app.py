@@ -25,16 +25,6 @@ IMAGE_SIZE = (256, 256)
 # Load environment variables
 load_dotenv()
 
-# Configure Gemini API
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-# if not GEMINI_API_KEY:
-#     raise RuntimeError("❌ Gemini API key not found in .env file")
-# genai.configure(api_key=GEMINI_API_KEY)
-
-if not GOOGLE_API_KEY:
-    raise RuntimeError("❌ Gemini API key not found in .env file")
-genai.configure(api_key=GOOGLE_API_KEY)
 
 CLASS_NAMES = {
     "tomatoes": ["Tomato_Bacterial_spot", "Tomato_Early_blight", "Tomato_healthy", "..."],
@@ -66,6 +56,7 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 embeddings = download_hugging_face_embeddings()
 
 index_name = "agroguard" 
+
 # Embed each chunk and upsert the embeddings into your Pinecone index.
 docsearch = PineconeVectorStore.from_existing_index(
     index_name=index_name,
