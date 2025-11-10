@@ -100,9 +100,27 @@ def predict():
         confidence = float(np.max(prediction[0])) * 100
         predicted_class_name = CLASS_NAMES[crop][predicted_class_index]
 
+        # --- Ollama LLM prompt for a brief summary ---
+        prompt = f"""
+        Write a very short and clear 2–3 sentence summary about this crop disease.
+        Mention what it affects and its general impact on the plant.
+
+        Crop: {crop}
+        Disease: {predicted_class_name.replace('_', ' ')}
+        """
+
+        # Call Ollama (you can use any model like llama3, mistral, or phi3)
+        response = ollama.chat(
+            model="llama3:8b",
+            messages=[{"role": "user", "content": prompt}]
+        )
+
+        summary = response['message']['content'].strip()
+
         return jsonify({
             'disease': predicted_class_name.replace('_', ' '),
-            'confidence': f"{confidence:.2f}%"
+            'confidence': f"{confidence:.2f}%",
+            'summary': summary
         })
     except Exception as e:
         return jsonify({'error': f'Error during prediction: {str(e)}'}), 500
