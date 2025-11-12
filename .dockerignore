@@ -1,0 +1,23 @@
+# Ignore virtual environments
+venv/
+agro_env/
+.env
+
+# Ignore model weights, large files, cache, logs
+*.h5
+*.ckpt
+*.pkl
+*.zip
+*.tar.gz
+__pycache__/
+*.log
+*.sqlite3
+
+# Ignore local folders not needed inside Docker
+.git/
+.gitignore
+node_modules/
+.idea/
+.vscode/
+__pycache__/
+*.ipynb

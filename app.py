@@ -5,7 +5,6 @@ from flask_cors import CORS
 from PIL import Image
 import tensorflow as tf
 from dotenv import load_dotenv
-import google.generativeai as genai  # ✅ Gemini API
 from src.helper import download_hugging_face_embeddings
 from langchain_pinecone import PineconeVectorStore
 from langchain.chains import create_retrieval_chain
@@ -17,7 +16,7 @@ from langchain_groq import ChatGroq
 
 
 # --- Configuration & Model Loading ---
-app = Flask(__name__, static_folder="frontend", static_url_path="")
+app = Flask(__name__, static_folder="templates", static_url_path="")
 CORS(app)
 
 IMAGE_SIZE = (256, 256)
