@@ -17,7 +17,7 @@ RUN pip install --upgrade pip setuptools wheel && \
 COPY . .
 
 # ✅ Expose port
-EXPOSE 8080
+EXPOSE $PORT
 
 # ✅ Run Flask app
 CMD ["python", "app.py"]
