@@ -13,6 +13,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from src.prompt import *
 from langchain.memory import ConversationBufferMemory
 from langchain_groq import ChatGroq
+import config.tf_cpu
 
 
 # --- Configuration & Model Loading ---
@@ -159,5 +160,5 @@ def rag_chat_memory():
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8080))
+    port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
