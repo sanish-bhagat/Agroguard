@@ -12,6 +12,6 @@ RUN pip install --upgrade pip setuptools wheel && \
 COPY . .
 
 # Render exposes a random port at runtime.
-EXPOSE 5000
+EXPOSE 10000
 
 CMD ["python", "app.py"]
