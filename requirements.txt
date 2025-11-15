@@ -3,7 +3,7 @@ flask_cors
 numpy==1.26.4
 pandas
 Pillow
-# tensorflow==2.17
+tensorflow-cpu==2.17.0
 python-dotenv==1.1.0
 protobuf
 langchain==0.3.26
